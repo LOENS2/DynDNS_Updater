@@ -19,20 +19,22 @@ public class UpdateUI {
     private JLabel label_hostname;
     private JLabel label_status;
     private JButton save_button;
+    private static JFrame frame = new JFrame("DynDNS Updater");;
     public static boolean firstTimeSetup = true;
     private static String systemipaddress = "";
+
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
     }
 
-
     public static void main(String[] args) {
 
-        //Initalize UpdateUI
+        // Initializes UpdateUI
 
         UpdateUI updateUI = new UpdateUI();
 
+        // Reads saved file
         String content = null;
         try {
             content = readFromFile("credentials.txt");
@@ -52,7 +54,6 @@ public class UpdateUI {
         // Initializes Frame (First Time Setup)
 
         if (firstTimeSetup) {
-            JFrame frame = new JFrame("DynDNS Updater");
             frame.setContentPane(updateUI.main);
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.pack();
@@ -74,6 +75,18 @@ public class UpdateUI {
                 String content = "false" + "\n" + updateUI.username.getText() + "\n" + new String(updateUI.password.getPassword()) + "\n" + updateUI.hostname.getText();
                 writeToFile("credentials.txt", content);
                 firstTimeSetup = false;
+                updateUI.label_status.setText("Saved!");
+                updateUI.label_status.setVisible(true);
+                new Thread("pause") {
+                    public void run () {
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }.start();
+                updateUI.frame.setVisible(false);
                 main(new String[]{});
             }
         });
@@ -141,7 +154,6 @@ public class UpdateUI {
 
     }
 
-
     public void update () {
         loop:
         do {
@@ -197,13 +209,11 @@ public class UpdateUI {
                 } else {
                     System.out.println("Help");
                     continue loop;
-
                 }
 
             }
         } while (false);
     }
-
 
     public static void writeToFile(String path, String contents) {
         File file = new File(path);
