@@ -1,10 +1,8 @@
 package com.loens2.dyndns_updater;
 
 import javax.swing.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import javax.xml.bind.DatatypeConverter;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -21,6 +19,9 @@ public class UpdateUI {
     private JLabel label_password;
     private JLabel label_hostname;
     private JLabel label_ip;
+    private JLabel label_status;
+    private JButton load_button;
+    private JButton save_button;
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
@@ -40,11 +41,36 @@ public class UpdateUI {
         frame.setVisible(true);
 
         frame.setLocationRelativeTo(null);
+
+        updateUI.label_status.setVisible(false);
+
         runActions(updateUI);
 
         }
 
     private static void runActions(UpdateUI updateUI) {
+
+        updateUI.save_button.addActionListener((event) -> {
+            if (updateUI.username.getText() != null) {
+                ;
+                String content = updateUI.username.getText()+"\n"+new String(updateUI.password.getPassword())+"\n"+updateUI.hostname.getText();
+                writeToFile("credentials.txt",content);
+            }
+        });
+
+        updateUI.load_button.addActionListener((event) -> {
+            String content = null;
+            try {
+                 content = readFromFile("credentials.txt");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            String[] splitContent = content.split("\n");
+            updateUI.username.setText(splitContent[0]);
+            updateUI.password.setText(splitContent[1]);
+            updateUI.hostname.setText(splitContent[2]);
+        });
+
 
         // Activation via Button Press
 
@@ -86,8 +112,8 @@ public class UpdateUI {
 
             // DynDNS user gets authorized
 
-            String userpass = updateUI.username.getText() + ":" + updateUI.password.getText();
-            String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes());
+            String userpass = updateUI.username.getText() + ":" + updateUI.password.getPassword();
+            String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
 
             uc.setRequestProperty("Authorization", basicAuth);
             InputStream in = null;
@@ -113,14 +139,44 @@ public class UpdateUI {
                 // Debug info
 
                 System.out.println(content);
-                if (content.matches("(.*)nochg(.*)") == true) {
+                if (content.matches("(.*)nochg(.*)") || content.matches("(.*)good(.*)")) {
                     System.out.println("Done");
+                    updateUI.label_status.setText("Done.");
+                    updateUI.label_status.setVisible(true);
+                    new Thread("Timeout") {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            timedOut = true;
+                            updateUI.label_status.setVisible(false);
+                        }
+                    }.start();
+
                 } else {
                     System.out.println("Help");
+                    updateUI.label_status.setText("Failure...");
+                    updateUI.label_status.setVisible(true);
+                    new Thread("Timeout") {
+                        @Override
+                        public void run() {
+                            try {
+                                Thread.sleep(5000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                            timedOut = true;
+                            updateUI.label_status.setVisible(false);
+                        }
+                    }.start();
                 }
 
             }
 
         });
+
     }
 }
