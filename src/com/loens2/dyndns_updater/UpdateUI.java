@@ -19,7 +19,7 @@ public class UpdateUI {
     private JLabel label_hostname;
     private JLabel label_status;
     private JButton save_button;
-    private static JFrame frame = new JFrame("DynDNS Updater");;
+    private static JFrame frame = new JFrame("DynDNS Updater");
     public static boolean firstTimeSetup = true;
     private static String systemipaddress = "";
 
@@ -54,12 +54,7 @@ public class UpdateUI {
         // Initializes Frame (First Time Setup)
 
         if (firstTimeSetup) {
-            frame.setContentPane(updateUI.main);
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.pack();
-            frame.setVisible(true);
-            frame.setLocationRelativeTo(null);
-            updateUI.label_status.setVisible(false);
+            updateUI.initializeFrame();
         }
 
         runActions(updateUI);
@@ -67,6 +62,15 @@ public class UpdateUI {
     }
 
     private static volatile boolean timedOut = false;
+
+    private void initializeFrame () {
+        frame.setContentPane(main);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
+        frame.setLocationRelativeTo(null);
+        label_status.setVisible(false);
+    }
 
     private static void runActions(UpdateUI updateUI) {
 
@@ -86,7 +90,8 @@ public class UpdateUI {
                         }
                     }
                 }.start();
-                updateUI.frame.setVisible(false);
+                updateUI.label_status.setVisible(false);
+                frame.setVisible(false);
                 main(new String[]{});
             }
         });
@@ -208,6 +213,10 @@ public class UpdateUI {
                     restarter();
                 } else {
                     System.out.println("Help");
+                    initializeFrame();
+                    frame.setVisible(true);
+                    label_status.setText("Failure! Check credentials!");
+                    label_status.setVisible(true);
                     continue loop;
                 }
 
