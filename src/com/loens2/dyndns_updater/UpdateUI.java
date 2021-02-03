@@ -12,173 +12,187 @@ public class UpdateUI {
     private JTextField username;
     private JPasswordField password;
     private JTextField ip;
-    private JButton update_button;
     private JTextField hostname;
     private JPanel main;
     private JLabel label_username;
     private JLabel label_password;
     private JLabel label_hostname;
-    private JLabel label_ip;
     private JLabel label_status;
-    private JButton load_button;
     private JButton save_button;
+    public static boolean firstTimeSetup;
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
     }
 
 
-
     public static void main(String[] args) {
 
-        // Initializes Frame
+        //Initalize UpdateUI
 
-        JFrame frame = new JFrame("DynDNS Updater");
         UpdateUI updateUI = new UpdateUI();
-        frame.setContentPane(updateUI.main);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.pack();
-        frame.setVisible(true);
 
-        frame.setLocationRelativeTo(null);
+        String content = null;
+        try {
+            content = readFromFile("credentials.txt");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (content != null && !(content.equals(""))) {
+            String[] splitContent = content.split("\n");
+            firstTimeSetup = Boolean.parseBoolean(splitContent[0]);
+            updateUI.username.setText(splitContent[1]);
+            updateUI.password.setText(splitContent[2]);
+            updateUI.hostname.setText(splitContent[3]);
+        }
 
-        updateUI.label_status.setVisible(false);
+        System.out.println(firstTimeSetup);
+
+        // Initializes Frame (First Time Setup)
+
+        if (firstTimeSetup) {
+            JFrame frame = new JFrame("DynDNS Updater");
+            frame.setContentPane(updateUI.main);
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.pack();
+            frame.setVisible(true);
+            frame.setLocationRelativeTo(null);
+            updateUI.label_status.setVisible(false);
+        }
 
         runActions(updateUI);
 
-        }
+    }
 
-private static volatile boolean timedOut = false;
+    private static volatile boolean timedOut = false;
 
     private static void runActions(UpdateUI updateUI) {
 
         updateUI.save_button.addActionListener((event) -> {
             if (updateUI.username.getText() != null) {
-                ;
-                String content = updateUI.username.getText()+"\n"+new String(updateUI.password.getPassword())+"\n"+updateUI.hostname.getText();
-                writeToFile("credentials.txt",content);
+                String content = "false" + "\n" + updateUI.username.getText() + "\n" + new String(updateUI.password.getPassword()) + "\n" + updateUI.hostname.getText();
+                writeToFile("credentials.txt", content);
+                firstTimeSetup = false;
+                main(new String[] {});
             }
         });
 
-        updateUI.load_button.addActionListener((event) -> {
-            String content = null;
+
+
+        if (firstTimeSetup) return;
+
+        String systemipaddress = "";
+        try {
+            URL url_name = new URL("http://bot.whatismyipaddress.com");
+            BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream()));
+            systemipaddress = sc.readLine().trim();
+        } catch (Exception e) {
+            systemipaddress = "Cannot Execute Properly";
+        }
+
+        URL url = null;
+        try {
+            url = new URL("https://dyndns.strato.com/nic/update/nic/checkip.html");
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+
+        URLConnection uc = null;
+        try {
+            uc = url.openConnection();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // DynDNS user gets authorized
+
+        String userpass = updateUI.username.getText() + ":" + new String(updateUI.password.getPassword());
+        System.out.println(userpass);
+        String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
+
+        uc.setRequestProperty("Authorization", basicAuth);
+        InputStream in = null;
+        try {
+            in = uc.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
+
+        // read site content
+
+        String content = null;
+
+        while (true) {
             try {
-                 content = readFromFile("credentials.txt");
+                if (!((content = bufferedReader.readLine()) != null)) break;
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            String[] splitContent = content.split("\n");
-            updateUI.username.setText(splitContent[0]);
-            updateUI.password.setText(splitContent[1]);
-            updateUI.hostname.setText(splitContent[2]);
-        });
+            System.out.println(content);
+            String[] splitContent = content.split(" ");
+            if (splitContent[1] == systemipaddress) restarter();
+
+        }
 
 
-        // Activation via Button Press
+        loop:do {
 
-        updateUI.update_button.addActionListener((event) -> {
-            String ip = null;
-            if (updateUI.ip.getText().length() != 0) {
-                ip = updateUI.ip.getText();
-                System.out.println(ip);
-            } else if (updateUI.ip.getText().length() == 0) {
-
-                // Gets public ip address if none is specified in the GUI
-                String systemipaddress = "";
-                try {
-                    URL url_name = new URL("http://bot.whatismyipaddress.com");
-                    BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream()));
-                    systemipaddress = sc.readLine().trim();
-                } catch (Exception e) {
-                    systemipaddress = "Cannot Execute Properly";
-                }
-                ip = systemipaddress;
-            }
-
-            // DynDNS update gets initialized
 
             URL url1 = null;
             try {
-                url1 = new URL("http://dyndns.strato.com/nic/update?hostname="+ updateUI.hostname.getText()+"&myip="+ip);
+                url1 = new URL("http://dyndns.strato.com/nic/update?hostname=" + updateUI.hostname.getText() + "&myip=" + systemipaddress);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
 
 
-            URLConnection uc = null;
+            URLConnection uc1 = null;
             try {
-                uc = url1.openConnection();
+                uc1 = url1.openConnection();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
             // DynDNS user gets authorized
 
-            String userpass = updateUI.username.getText() + ":" + updateUI.password.getPassword();
-            String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
-
-            uc.setRequestProperty("Authorization", basicAuth);
-            InputStream in = null;
+            uc1.setRequestProperty("Authorization", basicAuth);
+            InputStream in1 = null;
             try {
-                in = uc.getInputStream();
+                in1 = uc1.getInputStream();
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
+            BufferedReader bufferedReader1 = new BufferedReader(new InputStreamReader(in1));
 
             // read site content
 
-            String content = null;
+            String content1 = null;
 
             while (true) {
                 try {
-                    if (!((content = bufferedReader.readLine()) != null)) break;
+                    if (!((content1 = bufferedReader.readLine()) != null)) break;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 // Debug info
 
-                System.out.println(content);
+                System.out.println(content1);
                 if (content.matches("(.*)nochg(.*)") || content.matches("(.*)good(.*)")) {
                     System.out.println("Done");
-                    updateUI.label_status.setText("Done.");
-                    updateUI.label_status.setVisible(true);
-                    new Thread("Timeout") {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            timedOut = true;
-                            updateUI.label_status.setVisible(false);
-                        }
-                    }.start();
-
+                    restarter();
                 } else {
                     System.out.println("Help");
-                    updateUI.label_status.setText("Failure...");
-                    updateUI.label_status.setVisible(true);
-                    new Thread("Timeout") {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            timedOut = true;
-                            updateUI.label_status.setVisible(false);
-                        }
-                    }.start();
+                    continue loop;
+
                 }
 
             }
-
-        });
+        } while (false);
 
     }
 
@@ -199,4 +213,22 @@ private static volatile boolean timedOut = false;
             return new String(buffer).trim();
         }
     }
+
+    public static void restarter () {
+        new Thread("Timeout") {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                timedOut = true;
+                main(new String[] {});
+            }
+        }.start();
+
+    }
 }
+
+
