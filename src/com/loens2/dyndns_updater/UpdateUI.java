@@ -19,7 +19,8 @@ public class UpdateUI {
     private JLabel label_hostname;
     private JLabel label_status;
     private JButton save_button;
-    public static boolean firstTimeSetup;
+    public static boolean firstTimeSetup = true;
+    private static String systemipaddress = "";
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
@@ -73,17 +74,16 @@ public class UpdateUI {
                 String content = "false" + "\n" + updateUI.username.getText() + "\n" + new String(updateUI.password.getPassword()) + "\n" + updateUI.hostname.getText();
                 writeToFile("credentials.txt", content);
                 firstTimeSetup = false;
-                main(new String[] {});
+                main(new String[]{});
             }
         });
 
 
-
         if (firstTimeSetup) return;
 
-        String systemipaddress = "";
+
         try {
-            URL url_name = new URL("http://bot.whatismyipaddress.com");
+            URL url_name = new URL("http://ipv4bot.whatismyipaddress.com");
             BufferedReader sc = new BufferedReader(new InputStreamReader(url_name.openStream()));
             systemipaddress = sc.readLine().trim();
         } catch (Exception e) {
@@ -108,7 +108,6 @@ public class UpdateUI {
         // DynDNS user gets authorized
 
         String userpass = updateUI.username.getText() + ":" + new String(updateUI.password.getPassword());
-        System.out.println(userpass);
         String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
 
         uc.setRequestProperty("Authorization", basicAuth);
@@ -124,26 +123,33 @@ public class UpdateUI {
         // read site content
 
         String content = null;
-
         while (true) {
             try {
                 if (!((content = bufferedReader.readLine()) != null)) break;
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            System.out.println(content);
-            String[] splitContent = content.split(" ");
-            if (splitContent[1] == systemipaddress) restarter();
 
+            System.out.println(systemipaddress);
+            if (content.matches("(.*)"+systemipaddress+"(.*)")) {
+                System.out.println("true");
+                restarter();
+            } else {
+                updateUI.update();
+            }
         }
 
+    }
 
-        loop:do {
+
+    public void update () {
+        loop:
+        do {
 
 
             URL url1 = null;
             try {
-                url1 = new URL("http://dyndns.strato.com/nic/update?hostname=" + updateUI.hostname.getText() + "&myip=" + systemipaddress);
+                url1 = new URL("http://dyndns.strato.com/nic/update?hostname=" + hostname.getText() + "&myip=" + systemipaddress);
             } catch (MalformedURLException e) {
                 e.printStackTrace();
             }
@@ -158,6 +164,9 @@ public class UpdateUI {
 
             // DynDNS user gets authorized
 
+            String userpass = username.getText() + ":" + new String(password.getPassword());
+            String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
+
             uc1.setRequestProperty("Authorization", basicAuth);
             InputStream in1 = null;
             try {
@@ -166,22 +175,22 @@ public class UpdateUI {
                 e.printStackTrace();
             }
 
-            BufferedReader bufferedReader1 = new BufferedReader(new InputStreamReader(in1));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in1));
 
             // read site content
 
-            String content1 = null;
+            String content = null;
 
             while (true) {
                 try {
-                    if (!((content1 = bufferedReader.readLine()) != null)) break;
+                    if (!((content = bufferedReader.readLine()) != null)) break;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 // Debug info
 
-                System.out.println(content1);
+                System.out.println(content);
                 if (content.matches("(.*)nochg(.*)") || content.matches("(.*)good(.*)")) {
                     System.out.println("Done");
                     restarter();
@@ -193,8 +202,8 @@ public class UpdateUI {
 
             }
         } while (false);
-
     }
+
 
     public static void writeToFile(String path, String contents) {
         File file = new File(path);
@@ -215,19 +224,12 @@ public class UpdateUI {
     }
 
     public static void restarter () {
-        new Thread("Timeout") {
-            @Override
-            public void run() {
+
                 try {
                     Thread.sleep(30000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
-                }
-                timedOut = true;
-                main(new String[] {});
-            }
-        }.start();
-
+                }main(new String[] {});
     }
 }
 
