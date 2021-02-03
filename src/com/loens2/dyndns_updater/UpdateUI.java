@@ -48,6 +48,8 @@ public class UpdateUI {
 
         }
 
+private static volatile boolean timedOut = false;
+
     private static void runActions(UpdateUI updateUI) {
 
         updateUI.save_button.addActionListener((event) -> {
@@ -178,5 +180,23 @@ public class UpdateUI {
 
         });
 
+    }
+
+    public static void writeToFile(String path, String contents) {
+        File file = new File(path);
+        try (FileWriter writer = new FileWriter(file)) {
+            writer.write(contents);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String readFromFile(String path) throws IOException {
+        File file = new File(path);
+        try (FileReader reader = new FileReader(file)) {
+            char[] buffer = new char[2 * 1024];
+            reader.read(buffer);
+            return new String(buffer).trim();
+        }
     }
 }
