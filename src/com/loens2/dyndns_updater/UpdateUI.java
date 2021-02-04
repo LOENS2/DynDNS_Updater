@@ -22,6 +22,7 @@ public class UpdateUI {
     private JLabel label_status;
     private JButton load_button;
     private JButton save_button;
+    private static UpdateUI updateUI = new UpdateUI();
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
@@ -34,7 +35,7 @@ public class UpdateUI {
         // Initializes Frame
 
         JFrame frame = new JFrame("DynDNS Updater");
-        UpdateUI updateUI = new UpdateUI();
+        //UpdateUI updateUI = new UpdateUI();
         frame.setContentPane(updateUI.main);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
@@ -48,15 +49,18 @@ public class UpdateUI {
 
         }
 
-private static volatile boolean timedOut = false;
+    private static volatile boolean timedOut = false;
 
     private static void runActions(UpdateUI updateUI) {
 
         updateUI.save_button.addActionListener((event) -> {
-            if (updateUI.username.getText() != null) {
-                ;
+            if (!(updateUI.username.getText().isEmpty() || updateUI.password.getText().isEmpty() || updateUI.hostname.getText().isEmpty())) {
                 String content = updateUI.username.getText()+"\n"+new String(updateUI.password.getPassword())+"\n"+updateUI.hostname.getText();
                 writeToFile("credentials.txt",content);
+                setStatus("Saved!");
+            } else {
+                System.out.println("enter");
+                setStatus("Please fill in all required data!");
             }
         });
 
@@ -64,8 +68,12 @@ private static volatile boolean timedOut = false;
             String content = null;
             try {
                  content = readFromFile("credentials.txt");
+                 if (content.isEmpty()) {
+                     setStatus("Nothing saved!");
+                 }
             } catch (IOException e) {
                 e.printStackTrace();
+                setStatus("Nothing saved!");
             }
             String[] splitContent = content.split("\n");
             updateUI.username.setText(splitContent[0]);
@@ -78,9 +86,14 @@ private static volatile boolean timedOut = false;
 
         updateUI.update_button.addActionListener((event) -> {
             String ip = null;
+
+            if (updateUI.username.getText().isEmpty() || updateUI.password.getText().isEmpty() || updateUI.hostname.getText().isEmpty()) {
+                setStatus("Please fill in all required data!");
+                return;
+            }
+
             if (updateUI.ip.getText().length() != 0) {
                 ip = updateUI.ip.getText();
-                System.out.println(ip);
             } else if (updateUI.ip.getText().length() == 0) {
 
                 // Gets public ip address if none is specified in the GUI
@@ -142,38 +155,10 @@ private static volatile boolean timedOut = false;
 
                 System.out.println(content);
                 if (content.matches("(.*)nochg(.*)") || content.matches("(.*)good(.*)")) {
-                    System.out.println("Done");
-                    updateUI.label_status.setText("Done.");
-                    updateUI.label_status.setVisible(true);
-                    new Thread("Timeout") {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            timedOut = true;
-                            updateUI.label_status.setVisible(false);
-                        }
-                    }.start();
+                    setStatus("Done!");
 
                 } else {
-                    System.out.println("Help");
-                    updateUI.label_status.setText("Failure...");
-                    updateUI.label_status.setVisible(true);
-                    new Thread("Timeout") {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(5000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            timedOut = true;
-                            updateUI.label_status.setVisible(false);
-                        }
-                    }.start();
+                    setStatus("Failure...");
                 }
 
             }
@@ -198,5 +183,22 @@ private static volatile boolean timedOut = false;
             reader.read(buffer);
             return new String(buffer).trim();
         }
+    }
+
+    public static void setStatus(String text) {
+        updateUI.label_status.setText(text);
+        updateUI.label_status.setVisible(true);
+        new Thread("Timeout") {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                timedOut = true;
+                updateUI.label_status.setVisible(false);
+            }
+        }.start();
     }
 }

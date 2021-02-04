@@ -93,14 +93,6 @@
           <grid row="2" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
         </constraints>
       </hspacer>
-      <component id="8c78d" class="javax.swing.JButton" binding="update_button">
-        <constraints>
-          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value="Update"/>
-        </properties>
-      </component>
       <component id="99c25" class="javax.swing.JTextField" binding="ip">
         <constraints>
           <grid row="4" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
@@ -110,14 +102,6 @@
         <properties>
           <text value=""/>
           <toolTipText value="IP"/>
-        </properties>
-      </component>
-      <component id="af911" class="javax.swing.JLabel" binding="label_status">
-        <constraints>
-          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-        </constraints>
-        <properties>
-          <text value=""/>
         </properties>
       </component>
       <component id="a4d3c" class="javax.swing.JButton" binding="load_button">
@@ -134,6 +118,22 @@
         </constraints>
         <properties>
           <text value="Save"/>
+        </properties>
+      </component>
+      <component id="af911" class="javax.swing.JLabel" binding="label_status">
+        <constraints>
+          <grid row="5" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+        </properties>
+      </component>
+      <component id="8c78d" class="javax.swing.JButton" binding="update_button">
+        <constraints>
+          <grid row="5" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="Update"/>
         </properties>
       </component>
     </children>
