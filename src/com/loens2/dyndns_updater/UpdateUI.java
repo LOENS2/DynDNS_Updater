@@ -49,7 +49,6 @@ public class UpdateUI {
             updateUI.hostname.setText(splitContent[3]);
         }
 
-        System.out.println(firstTimeSetup);
 
         // Initializes Frame (First Time Setup)
 
@@ -148,9 +147,7 @@ public class UpdateUI {
                 e.printStackTrace();
             }
 
-            System.out.println(systemipaddress);
             if (content.matches("(.*)"+systemipaddress+"(.*)")) {
-                System.out.println("true");
                 restarter();
             } else {
                 updateUI.update();
@@ -207,12 +204,11 @@ public class UpdateUI {
 
                 // Debug info
 
-                System.out.println(content);
                 if (content.matches("(.*)nochg(.*)") || content.matches("(.*)good(.*)")) {
                     System.out.println("Done");
                     restarter();
                 } else {
-                    System.out.println("Help");
+                    System.out.println("Failure...");
                     initializeFrame();
                     frame.setVisible(true);
                     label_status.setText("Failure! Check credentials!");
