@@ -1,7 +1,6 @@
 package com.loens2.dyndns_updater;
 
 import javax.swing.*;
-import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -127,7 +126,7 @@ public class UpdateUI {
         // DynDNS user gets authorized
 
         String userpass = updateUI.username.getText() + ":" + new String(updateUI.password.getPassword());
-        String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
+        String basicAuth = "Basic " + Base64.getEncoder().encodeToString(userpass.getBytes());
 
         uc.setRequestProperty("Authorization", basicAuth);
         InputStream in = null;
@@ -183,7 +182,7 @@ public class UpdateUI {
             // DynDNS user gets authorized
 
             String userpass = username.getText() + ":" + new String(password.getPassword());
-            String basicAuth = "Basic " + Base64.getEncoder().encodeToString(userpass.getBytes());;
+            String basicAuth = "Basic " + Base64.getEncoder().encodeToString(userpass.getBytes());
 
             uc1.setRequestProperty("Authorization", basicAuth);
             InputStream in1 = null;
