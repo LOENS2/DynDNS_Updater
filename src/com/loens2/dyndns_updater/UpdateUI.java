@@ -6,6 +6,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Base64;
 
 
 public class UpdateUI {
@@ -182,7 +183,7 @@ public class UpdateUI {
             // DynDNS user gets authorized
 
             String userpass = username.getText() + ":" + new String(password.getPassword());
-            String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(userpass.getBytes());
+            String basicAuth = "Basic " + Base64.getEncoder().encodeToString(userpass.getBytes());;
 
             uc1.setRequestProperty("Authorization", basicAuth);
             InputStream in1 = null;
