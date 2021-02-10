@@ -35,7 +35,6 @@ public class UpdateUI {
         // Initializes Frame
 
         JFrame frame = new JFrame("DynDNS Updater");
-        //UpdateUI updateUI = new UpdateUI();
         frame.setContentPane(updateUI.main);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.pack();
