@@ -109,7 +109,7 @@ public class UpdateUI {
 
         URL url = null;
         try {
-            url = new URL("https://dyndns.strato.com/nic/update/nic/checkip.html");
+            url = new URL("https://dyndns.strato.com/nic/update/nic/checkip?hostname="+ updateUI.hostname.getText());
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -147,10 +147,11 @@ public class UpdateUI {
                 e.printStackTrace();
             }
 
-            if (content.matches("(.*)"+systemipaddress+"(.*)")) {
+            if (content.matches("(.*)nochg"+systemipaddress+"(.*)")) {
                 restarter();
             } else {
                 updateUI.update();
+
             }
         }
 
@@ -241,7 +242,7 @@ public class UpdateUI {
     public static void restarter () {
 
                 try {
-                    Thread.sleep(30000);
+                    Thread.sleep(100000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }main(new String[] {});
